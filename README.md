@@ -1,2 +1,2 @@
-# autogen-studio-research
-Playing around with AutoGen Studios and AutoGen
+## autogen studio & autogen research
+playing around with autogen studios and autogen ✨
