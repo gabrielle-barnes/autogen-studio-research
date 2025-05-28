@@ -19,8 +19,14 @@ if clicked:
                 elif message.startswith('researcher:'):
                     with st.chat_message('assistant'):
                         st.markdown(message[11:])
+                elif message.startswith('user'):
+                    with st.chat_message('user'):
+                        st.markdown(message)
                 else:
                     with st.expander('Tool Call'):
                         st.markdown(message)
-    asyncio.run(main(desc))
-
+    
+    with st.spinner('Searching for papers...'):
+        asyncio.run(main(desc))
+    st.success('Search completed!')
+    st.balloons()
