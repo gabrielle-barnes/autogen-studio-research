@@ -1,9 +1,15 @@
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_agentchat.teams import RoundRobinGroupChat
+from autogen_agentchat.messages import TextMessage, ToolCallRequestEvent, ToolCallExecutionEvent
 import asyncio
 import arxiv
 from pprint import pprint
+import creds
+
+'''
+Code from Mohammad Hossein Amini
+'''
 
 def searchArxiv(query: str, max_results: int = 5, sort_by: arxiv.SortCriterion = arxiv.SortCriterion.Relevance) -> list:
     """
@@ -35,11 +41,11 @@ def searchArxiv(query: str, max_results: int = 5, sort_by: arxiv.SortCriterion =
             "url": res.pdf_url,
         })
     return papers
-    
-async def main(task):
+
+def teamConfig():
     model = OpenAIChatCompletionClient(
         model="o3-mini",
-        api_key="",
+        api_key=creds.api_key,
     )
 
     arxiv_agent = AssistantAgent(
@@ -72,9 +78,25 @@ async def main(task):
         max_turns=2,
     )
 
+    return team
+    
+async def orchestrate(team, task):
     async for msg in team.run_stream(task=task):
         print("--" * 20)
-        pprint(msg)
+        if isinstance(msg, TextMessage):
+            print(message:=f'{msg.source}: {msg.content}')
+            yield message
+        elif isinstance(msg, ToolCallRequestEvent):
+            print(message:=str(msg))
+            yield message
+        elif isinstance(msg, ToolCallExecutionEvent):
+            print(message:=str(msg))
+            yield message
+
+async def main(task):
+    team = teamConfig()
+    async for message in orchestrate(team, task):
+        pass
 
 if __name__ == '__main__':
     task = "Find five best papers on GAN for image generation."
